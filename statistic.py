@@ -6,6 +6,7 @@ __email__ = "kevin.xu.fangzhou@gmail.com"
 import requests
 import json
 import re
+import web
 
 def parse(s):
     try:
@@ -57,9 +58,56 @@ class GraderJobs:
         res += [("%s-%s" %(current_day[0],current_day[1]), current_count)]
         return res
 
+urls = (
+    '/', 'index',
+    '/correct_rate(.*)', 'correct_rate',
+    '/submit_distribution(.*)', 'submit_distribution'
+)
+
+class index:
+    def GET(self):
+        return """
+        routes:
+            /correct_rate
+            /correct_rate/exp_id
+            /submit_distribution
+            /submit_distribution/exp_id
+            """
+class correct_rate:
+    def GET(self, name):
+        name = name[1:]
+        try:
+            gd = GraderJobs()
+            if name == "":
+                return gd.get_correct_rate()
+            else:
+                try:
+                    exp_id = int(name)
+                except Exception:
+                    raise Exception("Please enter experiment id.")
+                return gd.get_correct_rate(exp_id=exp_id)
+        except Exception as e:
+            return e.message
+
+class submit_distribution:
+    def GET(self, name):
+        name = name[1:]
+        try:
+            gd = GraderJobs()
+            if name == "":
+                return gd.get_time_distr()
+            else:
+                try:
+                    exp_id = int(name)
+                except Exception:
+                    raise Exception("Please enter experiment id.")
+                return gd.get_time_distr(exp_id=exp_id)
+        except Exception as e:
+            return e.message
+
 def main():
-    gd = GraderJobs()
-    print gd.get_time_distr(exp_id=2)
+    app = web.application(urls, globals())
+    app.run()
 
 if __name__ == "__main__":
     main()
