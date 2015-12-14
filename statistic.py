@@ -58,10 +58,15 @@ class GraderJobs:
         res += [("%s-%s" %(current_day[0],current_day[1]), current_count)]
         return res
 
+    def coding_style(self, exp_id=0):
+        return "hahaha"+str(exp_id)
+
+
 urls = (
     '/', 'index',
     '/correct_rate(.*)', 'correct_rate',
     '/submit_distribution(.*)', 'submit_distribution'
+    '/coding_style(.*)', 'coding_style'
 )
 
 class index:
@@ -102,6 +107,22 @@ class submit_distribution:
                 except Exception:
                     raise Exception("Please enter experiment id.")
                 return gd.get_time_distr(exp_id=exp_id)
+        except Exception as e:
+            return e.message
+
+class coding_style:
+    def GET(self, name):
+        name = name[1:]
+        try:
+            gd = GraderJobs()
+            if name == "":
+                return gd.coding_style()
+            else:
+                try:
+                    exp_id = int(name)
+                except Exception:
+                    raise Exception("Please enter experiment id.")
+                return gd.coding_style(exp_id=exp_id)
         except Exception as e:
             return e.message
 
