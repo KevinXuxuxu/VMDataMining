@@ -7,6 +7,14 @@ import requests
 import json
 import re
 import web
+import numpy
+import matplotlib.pyplot as plt
+
+def histogram(d, bins):
+    if type(d) == dict:
+        d = d.values()
+    plt.hist(d, bins=bins)
+    plt.show()
 
 def parse(s):
     try:
@@ -58,8 +66,40 @@ class GraderJobs:
         res += [("%s-%s" %(current_day[0],current_day[1]), current_count)]
         return res
 
-    def coding_style(self, exp_id=0):
-        return "hahaha"+str(exp_id)
+    def get_code_files(self, exp_id=0, filter_user=True):
+        if exp_id == 0:
+            filtered_data = self.data
+        else:
+            filtered_data = [r for r in filter(lambda x: parse(x['grader_payload'])['exp_id'] == exp_id, self.data)]
+            if len(filtered_data) == 0:
+                raise Exception("exp id not found.")
+
+        if filter_user:
+            d = {}
+            for sub in filtered_data:
+                if sub['grade'] > 0:
+                    d[sub['anonym_id']] = sub['code_file']
+        else:
+            d = {}
+            i = 0;
+            for sub in filtered_data:
+                if sub['grade'] > 0:
+                    d[i] = sub['code_file']
+                i += 1
+        return d
+
+    def code_file_len(self, exp_id=0, filter_user=True):
+        d = self.get_code_files(exp_id=exp_id, filter_user=filter_user)
+        for k in d.keys():
+            d[k] = len(d[k])
+        return d
+
+    def code_file_lines(self, exp_id=0, filter_user=True):
+        d = self.get_code_files(exp_id=exp_id, filter_user=filter_user)
+        for k in d.keys():
+            d[k] = len(d[k].split('\n'))
+        return d
+
 
 
 urls = (
@@ -77,6 +117,8 @@ class index:
             /correct_rate/exp_id
             /submit_distribution
             /submit_distribution/exp_id
+            /coding_style
+            /coding_style/exp_id
             """
 class correct_rate:
     def GET(self, name):
